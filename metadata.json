@@ -1,0 +1,5 @@
+{
+  "name": "You Need Travel",
+  "description": "Travel the way you love! A complete travel booking platform for tourists and B2B agents.",
+  "requestFramePermissions": ["geolocation"]
+}

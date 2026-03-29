@@ -1,0 +1,67 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && 
+        (get(/databases/$(database)/documents/agencies/$(request.auth.uid)).data.role == 'admin' || 
+         (request.auth.token.email == "fabdesettar@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isAgency() {
+      return isAuthenticated() && get(/databases/$(database)/documents/agencies/$(request.auth.uid)).data.role == 'agency';
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isBookingOwner(bookingData) {
+      return isAuthenticated() && request.auth.uid == bookingData.agencyId;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    // Hotels, Rates, Expenses, Packages
+    match /hotels/{hotelId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+    match /roomRates/{rateId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+    match /expenses/{expenseId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+    match /packages/{packageId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // Agencies
+    match /agencies/{agencyId} {
+      allow read: if isAuthenticated() && (isOwner(agencyId) || isAdmin());
+      allow create: if isAuthenticated() && (isOwner(agencyId) || isAdmin());
+      allow update: if isAuthenticated() && (isOwner(agencyId) || isAdmin());
+    }
+
+    // Bookings
+    match /bookings/{bookingId} {
+      allow read: if isAuthenticated() && (isBookingOwner(resource.data) || isAdmin());
+      allow create: if isAuthenticated() && (isBookingOwner(request.resource.data) || isAdmin());
+      allow update: if isAuthenticated() && (isBookingOwner(resource.data) || isAdmin());
+      allow delete: if isAdmin();
+    }
+  }
+}

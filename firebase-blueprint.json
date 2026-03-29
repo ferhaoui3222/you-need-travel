@@ -1,0 +1,100 @@
+{
+  "entities": {
+    "Hotel": {
+      "title": "Hotel",
+      "description": "Information about a hotel in Malaysia",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Hotel name" },
+        "city": { "type": "string", "description": "City in Malaysia" },
+        "stars": { "type": "number", "description": "Star rating (1-5)" },
+        "description": { "type": "string", "description": "General description" },
+        "images": { "type": "array", "items": { "type": "string" }, "description": "URLs of hotel images" }
+      },
+      "required": ["name", "city", "stars"]
+    },
+    "RoomRate": {
+      "title": "Room Rate",
+      "description": "Seasonal pricing for a hotel room",
+      "type": "object",
+      "properties": {
+        "hotelId": { "type": "string", "description": "Reference to Hotel ID" },
+        "seasonName": { "type": "string", "description": "Name of the season (e.g., Peak, Low)" },
+        "startDate": { "type": "string", "format": "date", "description": "Season start date" },
+        "endDate": { "type": "string", "format": "date", "description": "Season end date" },
+        "singleRate": { "type": "number", "description": "Rate for single person" },
+        "doubleRate": { "type": "number", "description": "Rate per person in double room" },
+        "tripleRate": { "type": "number", "description": "Rate per person in triple room" },
+        "childWithBedRate": { "type": "number", "description": "Rate for child with extra bed" },
+        "childNoBedRate": { "type": "number", "description": "Rate for child without extra bed" },
+        "infantRate": { "type": "number", "description": "Rate for infant" }
+      },
+      "required": ["hotelId", "startDate", "endDate", "singleRate", "doubleRate"]
+    },
+    "Expense": {
+      "title": "Expense",
+      "description": "Additional trip expenses like transfers or tours",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Expense name (e.g., Airport Transfer)" },
+        "type": { "type": "string", "enum": ["Transfer", "Tour", "Flight", "Ferry", "Meal"], "description": "Category of expense" },
+        "city": { "type": "string", "description": "City where expense applies" },
+        "price": { "type": "number", "description": "Cost of the expense" },
+        "calculationType": { "type": "string", "enum": ["Per Person", "Per Group"], "description": "How the price is applied" },
+        "description": { "type": "string", "description": "Daily itinerary description" }
+      },
+      "required": ["name", "type", "price", "calculationType"]
+    },
+    "Package": {
+      "title": "Package",
+      "description": "A pre-designed travel package template",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Package name" },
+        "cities": { "type": "array", "items": { "type": "string" }, "description": "List of cities included" },
+        "hotelOptions": { "type": "array", "items": { "type": "string" }, "description": "IDs of hotels recommended for this package" },
+        "includedExpenses": { "type": "array", "items": { "type": "string" }, "description": "IDs of expenses included by default" },
+        "baseMarkup": { "type": "number", "description": "Admin's profit margin" }
+      },
+      "required": ["name", "cities"]
+    },
+    "Agency": {
+      "title": "Agency",
+      "description": "A travel agency that sells your packages",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Agency name" },
+        "email": { "type": "string", "description": "Contact email" },
+        "commissionRate": { "type": "number", "description": "Agency's profit margin (%)" },
+        "walletBalance": { "type": "number", "description": "Prepaid balance" },
+        "role": { "type": "string", "enum": ["admin", "agency"], "description": "User role" }
+      },
+      "required": ["name", "email", "role"]
+    },
+    "Booking": {
+      "title": "Booking",
+      "description": "A confirmed or pending trip booking",
+      "type": "object",
+      "properties": {
+        "agencyId": { "type": "string", "description": "ID of the agency that made the booking" },
+        "packageId": { "type": "string", "description": "ID of the base package" },
+        "travelerName": { "type": "string", "description": "Main traveler name" },
+        "adults": { "type": "number" },
+        "children": { "type": "array", "items": { "type": "object", "properties": { "age": { "type": "number" }, "needsBed": { "type": "boolean" } } } },
+        "startDate": { "type": "string", "format": "date" },
+        "itinerary": { "type": "array", "items": { "type": "object" }, "description": "Selected hotels and nights per city" },
+        "totalCost": { "type": "number", "description": "Final price calculated" },
+        "status": { "type": "string", "enum": ["Pending", "Confirmed", "Cancelled"] }
+      },
+      "required": ["agencyId", "travelerName", "totalCost", "status"]
+    }
+  },
+  "firestore": {
+    "/hotels/{hotelId}": { "schema": "Hotel", "description": "Hotels collection" },
+    "/roomRates/{rateId}": { "schema": "RoomRate", "description": "Seasonal rates for hotels" },
+    "/expenses/{expenseId}": { "schema": "Expense", "description": "Trip expenses library" },
+    "/packages/{packageId}": { "schema": "Package", "description": "Package templates" },
+    "/agencies/{agencyId}": { "schema": "Agency", "description": "Agencies and users" },
+    "/bookings/{bookingId}": { "schema": "Booking", "description": "Bookings made by agencies" }
+  }
+}
